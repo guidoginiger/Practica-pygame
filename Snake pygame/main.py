@@ -2,6 +2,8 @@ import pygame, sys, random
 from pygame.math import Vector2
 import colores
 import botones
+#import puntuaciones
+#import pedir_texto
 
 class Snake:
 	def __init__(self) -> None:
@@ -48,13 +50,22 @@ class Snake:
 	def sonar_musica(self):
 		self.musica_principal.play()
 	
+	#MIENTRAS QUE LA 'pantalla_reset' esté activa el 'reset' del snake debe estar en pausa. Con pygame.time.delay(1500)
 	def reset(self):
 		self.cuerpo = [Vector2(6,10), Vector2(5,10), Vector2(4,10)]
 		self.direccion = Vector2(0,0)
+	
+	def crear_tiempo(self):
+		segundos = pygame.time.get_ticks() // 1000
+		segundos = str(segundos)
+		contador = fuente.render(segundos, 10, (colores.NEGRO))
 
-		texto_perdiste = fuente.render("PERDISTE", True, colores.CELESTE)
-		pantalla.fill((colores.NEGRO))
-		pantalla.blit(texto_perdiste, (100, 50))
+		pantalla.blit(contador, (0, 0))
+
+		segundos = int(segundos)
+		#Lo casteo a 'int' para que en 'check_falla' se logre la correcta comparacion.
+
+		return segundos
 
 class Fruta:
 	def __init__(self) -> None:
@@ -106,8 +117,6 @@ class Main:
 		self.obstaculo_5 = Obstaculo()
 		self.obstaculo_6 = Obstaculo()
 
-		global segundos
-
 	def update(self):
 		self.snake.movimiento_snake()
 		self.colision()
@@ -157,22 +166,31 @@ class Main:
 		if self.snake.cuerpo[1] == self.obstaculo_4.pos or self.snake.cuerpo[1] == self.obstaculo_5.pos or self.snake.cuerpo[1] == self.obstaculo_6.pos:
 			self.game_over()
 		
-		if segundos == 15 or segundos == 40 and self.snake.cuerpo[1] != self.obstaculo.pos:
+		segundos = self.snake.crear_tiempo()
+		
+		if segundos == 15 or segundos == 45 and self.snake.cuerpo[1] != self.obstaculo.pos:
 			self.obstaculo.randomize()
-		if segundos == 20 or segundos == 45 and self.snake.cuerpo[1] != self.obstaculo_2.pos:
+		if segundos == 20 or segundos == 50 and self.snake.cuerpo[1] != self.obstaculo_2.pos:
 			self.obstaculo_2.randomize()
-		if segundos == 25 or segundos == 50 and self.snake.cuerpo[1] != self.obstaculo_3.pos:
+		if segundos == 25 or segundos == 60 and self.snake.cuerpo[1] != self.obstaculo_3.pos:
 			self.obstaculo_3.randomize()
-		if segundos == 30 or segundos == 55 and self.snake.cuerpo[1] != self.obstaculo_4.pos:
+		if segundos == 30 or segundos == 70 and self.snake.cuerpo[1] != self.obstaculo_4.pos:
 			self.obstaculo_4.randomize()
-		if segundos == 45 or segundos == 60 and self.snake.cuerpo[1] != self.obstaculo_5.pos:
+		if segundos == 35 or segundos == 75 and self.snake.cuerpo[1] != self.obstaculo_5.pos:
 			self.obstaculo_5.randomize()
-		if segundos == 60 or segundos == 80 and self.snake.cuerpo[1] != self.obstaculo_5.pos:
+		if segundos == 40 or segundos == 90 and self.snake.cuerpo[1] != self.obstaculo_5.pos:
 			self.obstaculo_6.randomize()
 		
 	def game_over(self):
 		self.snake.reset()
-
+		self.pantalla_reset()
+	
+	def pantalla_reset(self):
+		texto_perdiste = fuente.render("PERDISTE", False, "Red")
+		texto_reintentar = fuente.render("Presione cualquier flecha para REINTENTAR...", True, "Red")
+		pantalla.fill((colores.NEGRO))
+		pantalla.blit(texto_perdiste, (150, 100))
+		pantalla.blit(texto_reintentar, (50, 200))
 
 	def crear_score(self):
 		score = str(len(self.snake.cuerpo) - 3)
@@ -201,6 +219,9 @@ pygame.mixer.pre_init(44100,-16,2,512)
 pygame.init()
 celda_tamanio = 35
 celda_numero = 20
+
+#Crear BASE DE DATOS
+#puntuaciones.crear_sql_puntajes()
 
 pantalla = pygame.display.set_mode((celda_tamanio * celda_numero, celda_tamanio * celda_numero))
 pygame.display.set_caption("Snake Game")
@@ -240,6 +261,7 @@ imagen_cobra = pygame.transform.scale(imagen_cobra, (300, 300))
 
 #Texto
 fuente = pygame.font.SysFont("Helvetica", 30)
+font = pygame.font.SysFont("Consolas", 35)
 
 '''
 PARA MOVERME A LA IZQ o ARRIBA tengo que disminuir 'x' e 'y' respectivamente.
@@ -261,102 +283,101 @@ while running:
 	#pygame.mixer.music.play(-1)
 	#(-1) es para que se repita la musica en loop.
 
-	segundos = pygame.time.get_ticks() // 1000
-	segundos = str(segundos)
-	contador = fuente.render(segundos, 10, (colores.NEGRO))
-
-	segundos = int(segundos)
-	#Lo casteo a 'int' para que en 'check_falla' se logre la correcta comparacion.
-	
-	'''	
 	intro = True
-
 	while intro:
-		tiempo.tick(10)
-		bienvenido = fuente.render("Bienvenido a SNAKE GAME", True, (colores.CELESTE))
-		pantalla.fill(colores.NEGRO)
-		pantalla.blit(bienvenido, (50, 50))
+		tiempo.tick(15)
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
-				intro = False
-				running = False
-			
+				pygame.quit()
+				sys.exit()
+
+			pantalla.fill(colores.CELESTE)
+			titulo = font.render("BIENVENIDO/A", True, (colores.NEGRO))
+			inst_jugar = font.render("Presione ENTER para JUGAR...", True, (colores.NEGRO))
+			inst_salir = font.render("Presione E para SALIR...", True, (colores.NEGRO))
+
+			pantalla.blit(titulo, (100, 50))
+			pantalla.blit(inst_jugar, (100, 150))
+			pantalla.blit(imagen_snake, (200, 210))
+			pantalla.blit(inst_salir, (100, 550))
+
 			tecla = pygame.key.get_pressed()
-			if event.type == pygame.KEYDOWN:
-				if tecla[pygame.K_RETURN]:
-					intro = False
 
-	pygame.display.update()
+			if tecla[pygame.K_RETURN]:
+				intro = False
+				esta_jugando = True
+			
+			if tecla[pygame.K_e]:
+				pygame.quit()
+				sys.exit()
+			
+			pygame.display.flip()
 	
-	'''
-	pantalla.fill((colores.BLANCO))
-	pantalla.blit(imagen_snake, imagen_fondo_pos)
-	pantalla.blit(contador, (0, 0))
-
-	puntaje = juego_principal.crear_score()
-	puntaje = int(puntaje)
-
-	if puntaje < 3:
-		nivel_1 = fuente.render("NIVEL 1", True, (colores.NEGRO))
-		pantalla.blit(nivel_1, (200, 0))
-		tiempo.tick(5)
-		juego_principal.update()
-
-	elif puntaje >= 3 and puntaje < 7:
-		pantalla.fill(colores.AMARILLO)
+	while esta_jugando:
+		pantalla.fill((colores.BLANCO))
 		pantalla.blit(imagen_snake, imagen_fondo_pos)
-		nivel_2 = fuente.render("NIVEL 2", True, (colores.NEGRO))
-		pantalla.blit(nivel_2, (200, 0))
-		pantalla.blit(contador, (0, 0))
-		tiempo.tick(8)
-		juego_principal.update()
 
-	elif puntaje >= 7 and puntaje < 10:
-		pantalla.fill(colores.NARANJA)
-		pantalla.blit(imagen_cobra, (100, 250))
-		nivel_3 = fuente.render("NIVEL 3", True, (colores.NEGRO))
-		pantalla.blit(nivel_3, (200, 0))
-		pantalla.blit(contador, (0, 0))
-		tiempo.tick(12)
-		juego_principal.update()
+		puntaje = juego_principal.crear_score()
+		puntaje = int(puntaje)
 
-	else:
-		pantalla.fill(colores.GRIS)
-		pantalla.blit(imagen_snake, imagen_fondo_pos)
-		pantalla.blit(contador, (0, 0))
-		tiempo.tick(17)
-		juego_principal.update()
-	
-	juego_principal.crear_elementos()
+		if puntaje < 3:
+			nivel_1 = fuente.render("NIVEL 1", True, (colores.NEGRO))
+			pantalla.blit(nivel_1, (200, 0))
+			tiempo.tick(5)
+			juego_principal.update()
 
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			pygame.quit()
-			sys.exit()
+		elif puntaje >= 3 and puntaje < 7:
+			pantalla.fill(colores.AMARILLO)
+			pantalla.blit(imagen_snake, imagen_fondo_pos)
+			nivel_2 = fuente.render("NIVEL 2", True, (colores.NEGRO))
+			pantalla.blit(nivel_2, (200, 0))
+			tiempo.tick(8)
+			juego_principal.update()
 
-		#if event.type == SCREEN_UPDATE:
-		#	juego_principal.update()
+		elif puntaje >= 7 and puntaje < 10:
+			pantalla.fill(colores.NARANJA)
+			pantalla.blit(imagen_cobra, (100, 250))
+			nivel_3 = fuente.render("NIVEL 3", True, (colores.NEGRO))
+			pantalla.blit(nivel_3, (200, 0))
+			tiempo.tick(12)
+			juego_principal.update()
+
+		else:
+			pantalla.fill(colores.GRIS)
+			pantalla.blit(imagen_snake, imagen_fondo_pos)
+			tiempo.tick(17)
+			juego_principal.update()
 		
-		#tecla = pygame.key.get_pressed()
+		juego_principal.crear_elementos()
 
-		if event.type == pygame.KEYDOWN:
-			#if tecla[pygame.K_UP]:
-			if event.key == pygame.K_UP:
-				if juego_principal.snake.direccion.y != 1:
-					juego_principal.snake.direccion = Vector2(0, -1)
-			if event.key == pygame.K_RIGHT:
-				if juego_principal.snake.direccion.x != -1:
-					juego_principal.snake.direccion = Vector2(1, 0)
-			if event.key == pygame.K_LEFT:
-				if juego_principal.snake.direccion.x != 1:
-					juego_principal.snake.direccion = Vector2(-1, 0)
-			if event.key == pygame.K_DOWN:
-				if juego_principal.snake.direccion.y != -1:
-					juego_principal.snake.direccion = Vector2(0, 1)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+
+			#if event.type == SCREEN_UPDATE:
+			#	juego_principal.update()
+			
+			#tecla = pygame.key.get_pressed()
+
+			if event.type == pygame.KEYDOWN:
+				#if tecla[pygame.K_UP]:
+				if event.key == pygame.K_UP:
+					if juego_principal.snake.direccion.y != 1:
+						juego_principal.snake.direccion = Vector2(0, -1)
+				if event.key == pygame.K_RIGHT:
+					if juego_principal.snake.direccion.x != -1:
+						juego_principal.snake.direccion = Vector2(1, 0)
+				if event.key == pygame.K_LEFT:
+					if juego_principal.snake.direccion.x != 1:
+						juego_principal.snake.direccion = Vector2(-1, 0)
+				if event.key == pygame.K_DOWN:
+					if juego_principal.snake.direccion.y != -1:
+						juego_principal.snake.direccion = Vector2(0, 1)
 
 
-	pygame.display.update()
-	#Actualizo la pantalla.
+		pygame.display.update()
+		#Actualizo la pantalla.
 
 pygame.quit()
